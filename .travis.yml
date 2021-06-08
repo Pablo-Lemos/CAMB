@@ -58,6 +58,18 @@ jobs:
         - CHANNEL="conda-forge"
         - PYDIST="ANACONDA"
       python: "3.9"
+    - name: "GCC11 + Python 3.9 (conda-forge)"
+      dist: focal
+      addons:
+        apt:
+          packages:
+            - gfortran-11
+      env:
+        - GCC_VERSION="11"
+        - FORTRAN="test"
+        - CHANNEL="conda-forge"
+        - PYDIST="ANACONDA"
+      python: "3.9"
     - name: "GCC trunk cosmobox"
       language: shell
       services:
@@ -90,7 +102,7 @@ install:
       ln -s /usr/bin/gfortran-$GCC_VERSION gfortran-symlinks/gfortran;
       export PATH=$PWD/gfortran-symlinks:$PATH;
     fi
-  - if [[ "$GCC_VERSION" == "10" ]]; then
+  - if [[ "$GCC_VERSION" == "10" ||  "$GCC_VERSION" == "11" ]]; then
       export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libgfortran.so.5;
     fi
   - gfortran --version
