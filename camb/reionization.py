@@ -9,6 +9,42 @@ class ReionizationModel(F2003Class):
     _fields_ = [
         ("Reionization", c_bool, "Is there reionization? (can be off for matter power which is independent of it)")]
 
+@fortran_class
+class SplinedReionizationModel(InitialPower):
+    """
+    Object to store a generic reionization model set from a set of sampled z_i, Xe(z_i) values
+    """
+    _fortran_class_name_ = 'TSplinedReionizationModel'
+
+    _methods_ = [('SetTable', [POINTER(c_int), numpy_1d, numpy_1d]),
+                 ('SetLogRegular', [POINTER(c_double), POINTER(c_double), POINTER(c_int), numpy_1d])]
+
+    def __init__(self, **kwargs):
+        if kwargs.get('Xez', None) is not None:
+            self.set_scalar_table(kwargs['zs'], kwargs['Xez'])
+
+    def set_scalar_table(self, z, Xez):
+        """
+        Set arrays of z and Xe(z) values for cublic spline interpolation.
+        Note that using :meth:`set_log_regular` may be better
+        (faster, and easier to get fine enough spacing a low z)
+
+        :param z: array of z values
+        :param Xez: array of Xe values
+        """
+        self.f_SetTable(byref(c_int(len(z))), np.asarray(z), np.asarray(Xez))
+
+    def set_log_regular(self, zmin, zmax, Xez):
+        """
+        Set log-regular cublic spline interpolation for Xe(z)
+
+        :param zmin: minimum k value (not minimum log(k))
+        :param zmax: maximum k value (inclusive)
+        :param Xez: array of scalar power spectrum values, with Xe[0]=Xe(zmin) and Xe[-1]=Xe(zmax)
+        """
+        self.f_SetLogRegular(byref(c_double(zmin)), byref(c_double(zmax)), byref(c_int(len(Xez))),
+                                   np.asarray(Xez))
+
 
 @fortran_class
 class TanhReionization(ReionizationModel):

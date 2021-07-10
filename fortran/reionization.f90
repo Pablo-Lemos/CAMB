@@ -56,7 +56,18 @@
     procedure, private :: zreFromOptDepth => TTanhReionization_zreFromOptDepth
     end type TTanhReionization
 
-    public TTanhReionization
+    Type, extends(TReionizationModel) :: TSplinedReionizationModel
+        real(dl) :: zmin, zmax
+        class(TSpline1D), allocatable :: Xe
+    contains
+    procedure :: SetTable => TSplinedReionizationModel_SetTable
+    procedure :: SetLogRegular => TSplinedReionizationModel_SetLogRegular
+    procedure :: x_e => TSplinedReionizationModel_SplinedXe
+    procedure, nopass :: PythonClass => TSplinedReionizationModel_PythonClass
+    procedure, nopass :: SelfPointer => TSplinedReionizationModel_SelfPointer
+    end Type TSplinedReionizationModel
+
+    public TTanhReionization, TSplinedReionizationModel
     contains
 
 
@@ -302,5 +313,75 @@
     P => PType
 
     end subroutine TTanhReionization_SelfPointer
+
+    subroutine TSplinedReionizationModel_SelfPointer(cptr, P)
+        use iso_c_binding
+        Type(c_ptr) :: cptr
+        Type (TSplinedReionizationModel), pointer :: PType
+        class (TPythonInterfacedClass), pointer :: P
+
+        call c_f_pointer(cptr, PType)
+        P => PType
+
+    end subroutine TSplinedReionizationModel_SelfPointer
+
+    function TSplinedReionizationModel_SplinedXe(this, k)
+    class(TSplinedReionizationModel) :: this
+    real(dl), intent(in) ::z
+    real(dl) TSplinedReionizationModel_SplinedXe
+
+    if (z <= this%zmin) then
+        TSplinedReionizationModel_SplinedXe = this%Xe%F(1)
+    elseif (z >= this%zmax) then
+        TSplinedReionizationModel_SplinedXe = this%Xe%F(this%Pscalar%n)
+    else
+        TSplinedReionizationModel_SplinedXe = this%Xe%Value(z)
+    end if
+
+    end function TSplinedReionizationModel_SplinedXe
+
+    function TSplinedReionizationModel_PythonClass()
+    character(LEN=:), allocatable :: TSplinedReionizationModel_PythonClass
+
+    TSplinedReionizationModel_PythonClass = 'SplinedReionizationModel'
+
+    end function TSplinedReionizationModel_PythonClass
+
+    subroutine TSplinedReionizationModel_SetTable(this, n, z, Xez)
+    class(TSplinedReionizationModel) :: this
+    integer, intent(in) :: n
+    real(dl), intent(in) :: z(n), Xez(n)
+
+    if (allocated(this%Pscalar)) deallocate(this%Xe)
+    if (n>0) then
+        allocate(TCubicSpline::this%Xe)
+        select type (Sp => this%Xe)
+        class is (TCubicSpline)
+            call Sp%Init(z,Xez)
+        end select
+        this%zmin = z(1)
+        this%zmax = z(n)
+    end if
+
+    end subroutine TSplinedReionizationModel_SetTable
+
+    subroutine TSplinedReionizationModel_SetLogRegular(this, zmin, zmax, n, Xez)
+    class(TSplinedReionizationModel) :: this
+    integer, intent(in) :: n
+    real(dl), intent(in) ::zmin, zmax, Xez(n)
+
+    if (allocated(this%Xe)) deallocate(this%Xe)
+    if (n>0) then
+        allocate(TLogRegularCubicSpline::this%Xe)
+        select type (Sp => this%Xe)
+        class is (TLogRegularCubicSpline)
+            call Sp%Init(zmin, zmax, n, Xez)
+        end select
+        this%zmin_scalar = zmin
+        this%zmax_scalar = zmax
+    end if
+
+    end subroutine TSplinedReionizationModel_SetLogRegular
+
 
     end module Reionization
