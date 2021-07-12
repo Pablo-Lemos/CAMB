@@ -397,8 +397,8 @@
     PRINT*, 'GETTING TIMESTEPS'
 
     n_steps = nint(50 * this%timestep_boost)
-    z_start = this%zmin
-    z_complete = this%zmax
+    z_start = this%zmax
+    z_complete = this%zmin
 
     end subroutine TSplinedReionizationModel_get_timesteps
 

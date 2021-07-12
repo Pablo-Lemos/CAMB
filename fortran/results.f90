@@ -1909,7 +1909,7 @@
             if(ncount == 0) then
                 ncount=i-1
             end if
-            write(*,*) 'YESSS', CP%Reion%x_e(1/a-1, tau, this%xe(ncount)), 1/a-1, tau, this%xe(ncount)
+            !write(*,*) 'YESSS', CP%Reion%x_e(1/a-1, tau, this%xe(ncount)), 1/a-1, tau, this%xe(ncount)
             this%xe(i) = CP%Reion%x_e(1/a-1, tau, this%xe(ncount))
         elseif (CP%Reion%Reionization .and. tau > State%reion_tau_start) then
             if(ncount == 0) then
@@ -1941,7 +1941,7 @@
 
         ! Calculation of the visibility function
         this%dotmu(i)=this%xe(i)*State%akthom/a2
-
+        !PRINT *, 'DOTMU', this%xe(i), State%akthom/a2, this%dotmu(i)
         if (this%tight_tau==0 .and. 1/(tau*this%dotmu(i)) > 0.005) this%tight_tau = tau !0.005
         !Tight coupling switch time when k/opacity is smaller than 1/(tau*opacity)
     end do
@@ -2005,13 +2005,16 @@
         cf1=1._dl
         ns=nthermo
     else
+        !write(*,*), 'ncount', ncount
         cf1=exp(-sdotmu(ncount))
         ns=ncount
     end if
+    PRINT *, 'ns', ns
     maxvis = 0
     do j1=1,ns
         vis = this%emmu(j1)*this%dotmu(j1)
         tau = taus(j1)
+        !PRINT *, 'vis,cf1,this%dlntau,tau', vis,cf1,this%dlntau,tau
         vfi=vfi+vis*cf1*this%dlntau*tau
         if ((iv == 0).and.(vfi > 1.0d-7/CP%Accuracy%AccuracyBoost)) then
             State%taurst=9._dl/10._dl*tau
@@ -2029,6 +2032,7 @@
         end if
     end do
 
+    PRINT *, 'IV', iv,  vis, maxvis,  vfi
     if (iv /= 2) then
         call GlobalError('ThemoData Init: failed to find end of recombination',error_reionization)
         return

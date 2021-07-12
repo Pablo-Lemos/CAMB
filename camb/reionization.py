@@ -28,7 +28,7 @@ class SplinedReionization(ReionizationModel):
                  ('SetLogRegular', [POINTER(c_double), POINTER(c_double), POINTER(c_int), numpy_1d])]
 
     def __init__(self, **kwargs):
-        self.use_spline = True
+        #self.use_spline = True
         if kwargs.get('Xez', None) is not None:
             self.set_scalar_table(kwargs['zs'], kwargs['Xez'])
 
