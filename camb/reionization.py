@@ -7,7 +7,11 @@ class ReionizationModel(F2003Class):
     Abstract base class for reionization models.
     """
     _fields_ = [
-        ("Reionization", c_bool, "Is there reionization? (can be off for matter power which is independent of it)")]
+        ("Reionization", c_bool, "Is there reionization? (can be off for matter power which is independent of it)"),
+        ("use_spline", c_bool, "Am I using spline?")]
+
+    def __init__(self):
+        self.use_spline = False
 
 @fortran_class
 class SplinedReionization(ReionizationModel):
@@ -24,6 +28,7 @@ class SplinedReionization(ReionizationModel):
                  ('SetLogRegular', [POINTER(c_double), POINTER(c_double), POINTER(c_int), numpy_1d])]
 
     def __init__(self, **kwargs):
+        self.use_spline = True
         if kwargs.get('Xez', None) is not None:
             self.set_scalar_table(kwargs['zs'], kwargs['Xez'])
 

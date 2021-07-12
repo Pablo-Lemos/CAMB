@@ -66,6 +66,7 @@
     procedure :: SetLogRegular => TSplinedReionizationModel_SetLogRegular
     procedure :: x_e => TSplinedReionizationModel_SplinedXe
     procedure :: get_timesteps => TSplinedReionizationModel_get_timesteps
+    procedure, nopass ::  GetZreFromTau => TTanhReionization_GetZreFromTau
     procedure, nopass :: PythonClass => TSplinedReionizationModel_PythonClass
     procedure, nopass :: SelfPointer => TSplinedReionizationModel_SelfPointer
     end Type TSplinedReionizationModel
@@ -293,6 +294,10 @@
         Reion%Reionization = .true.
         Reion%use_optical_depth = .true.
         Reion%optical_depth = tau
+        Reion%use_spline = .false.
+    class is (TSplinedReionizationModel)
+        Reion%Reionization = .true.
+        Reion%use_spline = .true.
     end select
     call State%SetParams(P2,error)
     if (error/=0)  then
@@ -301,6 +306,8 @@
         select type(Reion=>State%CP%Reion)
         class is (TTanhReionization)
             TTanhReionization_GetZreFromTau = Reion%redshift
+        class is (TSplinedReionizationModel)
+            TTanhReionization_GetZreFromTau = -1
         end select
     end if
 

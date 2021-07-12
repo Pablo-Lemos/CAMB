@@ -341,6 +341,7 @@
         this%CP%Accuracy = P%Accuracy
         this%CP%Transfer%high_precision = P%Transfer%high_precision
         this%CP%Reion%Reionization = P%Reion%Reionization
+        this%CP%Reion%use_spline = P%Reion%use_spline
         this%CP%WantTransfer =P%WantTransfer
         this%CP%WantScalars =P%WantScalars
         this%CP%WantTensors =P%WantTensors
@@ -1749,7 +1750,6 @@
     this%matter_verydom_tau = 0
     a_verydom = CP%Accuracy%AccuracyBoost*5*(State%grhog+State%grhornomass)/(State%grhoc+State%grhob)
     if (CP%Reion%Reionization) then
-        write(*,*) 'Getting timesteps'
         call CP%Reion%get_timesteps(State%reion_n_steps, reion_z_start, reion_z_complete)
         State%reion_tau_start = max(0.05_dl, State%TimeOfZ(reion_z_start, 1d-3))
         !Time when a very small reionization fraction (assuming tanh fitting)
@@ -1905,7 +1905,13 @@
 
         ! If there is re-ionization, smoothly increase xe to the
         ! requested value.
-        if (CP%Reion%Reionization .and. tau > State%reion_tau_start) then
+        if (CP%Reion%use_spline) then
+            if(ncount == 0) then
+                ncount=i-1
+            end if
+            write(*,*) 'YESSS', CP%Reion%x_e(1/a-1, tau, this%xe(ncount)), 1/a-1, tau, this%xe(ncount)
+            this%xe(i) = CP%Reion%x_e(1/a-1, tau, this%xe(ncount))
+        elseif (CP%Reion%Reionization .and. tau > State%reion_tau_start) then
             if(ncount == 0) then
                 ncount=i-1
             end if
