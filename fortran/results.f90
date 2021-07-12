@@ -1181,6 +1181,7 @@
     integer n
     real(dl) zstart, zend
 
+    write(*,*) 'Getting timesteps 0'
     call this%CP%Reion%get_timesteps(n, zstart, zend)
     GetReionizationOptDepth = Integrate_Romberg(this, reion_doptdepth_dz,0.d0,zstart,&
         1d-5/this%CP%Accuracy%AccuracyBoost)
@@ -1748,6 +1749,7 @@
     this%matter_verydom_tau = 0
     a_verydom = CP%Accuracy%AccuracyBoost*5*(State%grhog+State%grhornomass)/(State%grhoc+State%grhob)
     if (CP%Reion%Reionization) then
+        write(*,*) 'Getting timesteps'
         call CP%Reion%get_timesteps(State%reion_n_steps, reion_z_start, reion_z_complete)
         State%reion_tau_start = max(0.05_dl, State%TimeOfZ(reion_z_start, 1d-3))
         !Time when a very small reionization fraction (assuming tanh fitting)
@@ -1907,6 +1909,7 @@
             if(ncount == 0) then
                 ncount=i-1
             end if
+            write(*,*) 'YES', CP%Reion%x_e(1/a-1, tau, this%xe(ncount)), 1/a-1, tau, this%xe(ncount)
             this%xe(i) = CP%Reion%x_e(1/a-1, tau, this%xe(ncount))
             if (CP%Accuracy%AccurateReionization .and. CP%WantDerivedParameters) then
                 this%dotmu(i)=(xe_a(i) - this%xe(i))*State%akthom/a2
@@ -1917,6 +1920,7 @@
                 last_dotmu = this%dotmu(i)
             end if
         else
+            write(*,*) 'NO'
             this%xe(i)=xe_a(i)
         end if
 
@@ -1937,7 +1941,7 @@
     end do
 
     if (CP%Reion%Reionization .and. (this%xe(nthermo) < 0.999d0)) then
-        write(*,*)'Warning: xe at redshift zero is < 1'
+        write(*,*)'Warning: xe at redshift zero is < 1', nthermo, this%xe(nthermo)
         write(*,*) 'Check input parameters an Reionization_xe'
         write(*,*) 'function in the Reionization module'
     end if

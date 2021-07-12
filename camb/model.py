@@ -7,6 +7,7 @@ from . import reionization as reion
 from . import recombination as recomb
 from . import constants
 from .initialpower import InitialPower, SplinedInitialPower
+from .reionization import SplinedReionization
 from .nonlinear import NonLinearModel
 from .dark_energy import DarkEnergyModel, DarkEnergyEqnOfState
 from .recombination import RecombinationModel
@@ -283,7 +284,7 @@ class CAMBparams(F2003Class):
         The function is called to make a pre-computed array which is then interpolated inside CAMB. The sampling in k
         is set automatically so that the spline is accurate, but you may also need to increase other
         accuracy parameters.
-
+set_initial_power_function
         :param P_scalar: function returning normalized initial scalar curvature power as function of k (in Mpc^{-1})
         :param P_tensor: optional function returning normalized initial tensor power spectrum
         :param kmin: minimum wavenumber to compute
@@ -349,6 +350,69 @@ class CAMBparams(F2003Class):
         :return: self
         """
         self.InitPower = initial_power_params
+        return self
+
+    def set_reionization_function(self, Xez, zmin=1e-6, zmax=100., N_min=200, rtol=5e-5, args=()):
+        r"""
+        Set the reionization  history from a function X_e(z, \*args).
+        The function is called to make a pre-computed array which is then interpolated inside CAMB. The sampling in z
+        is set automatically so that the spline is accurate, but you may also need to increase other
+        accuracy parameters.
+
+        :param Xez: function returning normalized initial scalar curvature power as function of z
+        :param zmin: minimum redshift to compute
+        :param zmax: maximum redshift to compute
+        :param N_min: minimum number of spline points for the pre-computation
+        :param rtol: relative tolerance for deciding how many points are enough
+        :param args: optional list of arguments passed to P_scalar (and P_tensor)
+        :return: self
+        """
+
+        from scipy.interpolate import InterpolatedUnivariateSpline
+        assert N_min > 7
+        assert zmin < zmax
+        # sample function logspace, finely enough that it interpolates accurately
+        N = N_min
+        ztest = np.logspace(np.log10(zmin), np.log10(zmax), N // 2)
+        Xe_test = Xez(ztest, *args)
+        while True:
+            zs = np.logspace(np.log10(zmin), np.log10(zmax), N)
+            Xe_compare = InterpolatedUnivariateSpline(ztest, Xe_test)(zs)
+            Xe = Xez(zs, *args)
+            if np.allclose(Xe, Xe_compare, atol=np.max(Xe) * 1e-6, rtol=rtol):
+                break
+            N *= 2
+            Xe_test = Xe
+            ztest = zs
+        self.set_reionization_table(zs, Xe)
+        return self
+
+    def set_reionization_table(self, z, Xez=None):
+        """
+        Set a general reionization from tabulated values. It's up to you to ensure the sampling
+        of the z values is high enough that it can be interpolated accurately.
+
+        :param z: array of redshift values
+        :param Xez: array of Zre(z_i) values
+        """
+        self.Reion = SplinedReionization()
+        reion = self.Reion
+        if Xez is None:
+            Xez = np.asarray([])
+        elif len(z) != len(Xez):
+            raise CAMBValueError("z and Xe(z) arrays must be same size")
+        reion.set_scalar_table(z, Xez)
+        return self
+
+    def set_reionization(self, reionization_params):
+        """
+        Set the InitialPower primordial power spectrum parameters
+
+        :param reionization_params: :class:`.initialpower.InitialPowerLaw`
+                                     or :class:`.initialpower.SplinedInitialPower` instance
+        :return: self
+        """
+        self.Reion = reionization_params
         return self
 
     def set_H0_for_theta(self, theta, cosmomc_approx=False, theta_H0_range=(10, 100), est_H0=67.0,

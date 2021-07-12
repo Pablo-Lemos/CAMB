@@ -59,10 +59,13 @@
     Type, extends(TReionizationModel) :: TSplinedReionizationModel
         real(dl) :: zmin, zmax
         class(TSpline1D), allocatable :: Xe
+        real(dl)   :: timestep_boost =  1._dl
     contains
     procedure :: SetTable => TSplinedReionizationModel_SetTable
+    procedure :: ReadParams => TSplinedReionizationModel_ReadParams !Using this just to initiate the class and set use_spline
     procedure :: SetLogRegular => TSplinedReionizationModel_SetLogRegular
     procedure :: x_e => TSplinedReionizationModel_SplinedXe
+    procedure :: get_timesteps => TSplinedReionizationModel_get_timesteps
     procedure, nopass :: PythonClass => TSplinedReionizationModel_PythonClass
     procedure, nopass :: SelfPointer => TSplinedReionizationModel_SelfPointer
     end Type TSplinedReionizationModel
@@ -314,6 +317,16 @@
 
     end subroutine TTanhReionization_SelfPointer
 
+    subroutine TSplinedReionizationModel_ReadParams(this, Ini)
+    use IniObjects
+    class(TSplinedReionizationModel) :: this
+    class(TIniFile), intent(in) :: Ini
+
+    this%Reionization = .true.
+    this%use_spline = .true.
+
+    end subroutine TSplinedReionizationModel_ReadParams
+
     subroutine TSplinedReionizationModel_SelfPointer(cptr, P)
         use iso_c_binding
         Type(c_ptr) :: cptr
@@ -325,15 +338,16 @@
 
     end subroutine TSplinedReionizationModel_SelfPointer
 
-    function TSplinedReionizationModel_SplinedXe(this, k)
+    function TSplinedReionizationModel_SplinedXe(this, z, tau, xe_recomb)
     class(TSplinedReionizationModel) :: this
     real(dl), intent(in) ::z
+    real(dl), intent(in), optional :: tau, xe_recomb
     real(dl) TSplinedReionizationModel_SplinedXe
 
     if (z <= this%zmin) then
         TSplinedReionizationModel_SplinedXe = this%Xe%F(1)
     elseif (z >= this%zmax) then
-        TSplinedReionizationModel_SplinedXe = this%Xe%F(this%Pscalar%n)
+        TSplinedReionizationModel_SplinedXe = this%Xe%F(this%Xe%n)
     else
         TSplinedReionizationModel_SplinedXe = this%Xe%Value(z)
     end if
@@ -352,7 +366,7 @@
     integer, intent(in) :: n
     real(dl), intent(in) :: z(n), Xez(n)
 
-    if (allocated(this%Pscalar)) deallocate(this%Xe)
+    if (allocated(this%Xe)) deallocate(this%Xe)
     if (n>0) then
         allocate(TCubicSpline::this%Xe)
         select type (Sp => this%Xe)
@@ -364,6 +378,22 @@
     end if
 
     end subroutine TSplinedReionizationModel_SetTable
+
+    subroutine TSplinedReionizationModel_get_timesteps(this, n_steps, z_start, z_complete)
+    !minimum number of time steps to use between tau_start and tau_complete
+    !Scaled by AccuracyBoost later
+    !steps may be set smaller than this anyway
+    class(TSplinedReionizationModel) :: this
+    integer, intent(out) :: n_steps
+    real(dl), intent(out):: z_start, z_Complete
+
+    PRINT*, 'GETTING TIMESTEPS'
+
+    n_steps = nint(50 * this%timestep_boost)
+    z_start = this%zmin
+    z_complete = this%zmax
+
+    end subroutine TSplinedReionizationModel_get_timesteps
 
     subroutine TSplinedReionizationModel_SetLogRegular(this, zmin, zmax, n, Xez)
     class(TSplinedReionizationModel) :: this
@@ -377,8 +407,8 @@
         class is (TLogRegularCubicSpline)
             call Sp%Init(zmin, zmax, n, Xez)
         end select
-        this%zmin_scalar = zmin
-        this%zmax_scalar = zmax
+        this%zmin = zmin
+        this%zmax = zmax
     end if
 
     end subroutine TSplinedReionizationModel_SetLogRegular

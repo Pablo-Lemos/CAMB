@@ -109,6 +109,7 @@
 
     Type, extends(TCambComponent) :: TReionizationModel
         logical  :: Reionization = .true.
+        logical  :: use_spline = .false.
     contains
     procedure :: Init => TReionizationModel_Init
     procedure :: x_e => TReionizationModel_xe
@@ -331,6 +332,7 @@
     class(TReionizationModel) :: this
     integer, intent(out) :: n_steps
     real(dl), intent(out):: z_start, z_Complete
+    PRINT*, 'About to kill'
     call MpiStop('TReionizationModel_get_timesteps not implemented')
     n_steps=0
     z_start=0

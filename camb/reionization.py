@@ -1,5 +1,5 @@
-from .baseconfig import F2003Class, fortran_class
-from ctypes import c_bool, c_double, POINTER, byref, c_void_p
+from .baseconfig import F2003Class, fortran_class, byref, numpy_1d, np
+from ctypes import c_bool, c_int, c_double, POINTER, byref, c_void_p
 
 
 class ReionizationModel(F2003Class):
@@ -10,11 +10,15 @@ class ReionizationModel(F2003Class):
         ("Reionization", c_bool, "Is there reionization? (can be off for matter power which is independent of it)")]
 
 @fortran_class
-class SplinedReionizationModel(InitialPower):
+class SplinedReionization(ReionizationModel):
     """
     Object to store a generic reionization model set from a set of sampled z_i, Xe(z_i) values
     """
+    _fortran_class_module_ = 'Reionization'
     _fortran_class_name_ = 'TSplinedReionizationModel'
+
+    _fields_ = [("timestep_boost", c_double,
+                 "Accuracy boosting parameter for the minimum number of time sampling steps through reionization")]
 
     _methods_ = [('SetTable', [POINTER(c_int), numpy_1d, numpy_1d]),
                  ('SetLogRegular', [POINTER(c_double), POINTER(c_double), POINTER(c_int), numpy_1d])]
