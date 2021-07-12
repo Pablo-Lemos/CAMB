@@ -135,7 +135,6 @@
     OutData%CP%WantTransfer = Params%WantTransfer
     OutData%CP%Accuracy = Params%Accuracy
     OutData%CP%Reion%Reionization = Params%Reion%Reionization
-    OutData%CP%Reion%use_spline = Params%Reion%use_spline
     OutData%CP%Transfer%high_precision = Params%Transfer%high_precision
     OutData%CP%WantDerivedParameters = Params%WantDerivedParameters
 

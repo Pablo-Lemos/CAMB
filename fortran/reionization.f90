@@ -62,7 +62,6 @@
         real(dl)   :: timestep_boost =  1._dl
     contains
     procedure :: SetTable => TSplinedReionizationModel_SetTable
-    procedure :: ReadParams => TSplinedReionizationModel_ReadParams !Using this just to initiate the class and set use_spline
     procedure :: SetLogRegular => TSplinedReionizationModel_SetLogRegular
     procedure :: x_e => TSplinedReionizationModel_SplinedXe
     procedure :: get_timesteps => TSplinedReionizationModel_get_timesteps
@@ -294,10 +293,8 @@
         Reion%Reionization = .true.
         Reion%use_optical_depth = .true.
         Reion%optical_depth = tau
-        Reion%use_spline = .false.
     class is (TSplinedReionizationModel)
         Reion%Reionization = .true.
-        Reion%use_spline = .true.
     end select
     call State%SetParams(P2,error)
     if (error/=0)  then
@@ -323,16 +320,6 @@
     P => PType
 
     end subroutine TTanhReionization_SelfPointer
-
-    subroutine TSplinedReionizationModel_ReadParams(this, Ini)
-    use IniObjects
-    class(TSplinedReionizationModel) :: this
-    class(TIniFile), intent(in) :: Ini
-
-    this%Reionization = .true.
-    this%use_spline = .true.
-
-    end subroutine TSplinedReionizationModel_ReadParams
 
     subroutine TSplinedReionizationModel_SelfPointer(cptr, P)
         use iso_c_binding
@@ -393,8 +380,6 @@
     class(TSplinedReionizationModel) :: this
     integer, intent(out) :: n_steps
     real(dl), intent(out):: z_start, z_Complete
-
-    PRINT*, 'GETTING TIMESTEPS'
 
     n_steps = nint(50 * this%timestep_boost)
     z_start = this%zmax

@@ -109,7 +109,6 @@
 
     Type, extends(TCambComponent) :: TReionizationModel
         logical  :: Reionization = .true.
-        logical  :: use_spline = .false.
     contains
     procedure :: Init => TReionizationModel_Init
     procedure :: x_e => TReionizationModel_xe
