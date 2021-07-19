@@ -9,6 +9,9 @@ class ReionizationModel(F2003Class):
     _fields_ = [
         ("Reionization", c_bool, "Is there reionization? (can be off for matter power which is independent of it)")]
 
+    def set_params(self):
+        pass
+
 @fortran_class
 class SplinedReionization(ReionizationModel):
     """
@@ -48,6 +51,15 @@ class SplinedReionization(ReionizationModel):
         """
         self.f_SetLogRegular(byref(c_double(zmin)), byref(c_double(zmax)), byref(c_int(len(Xez))),
                                    np.asarray(Xez))
+
+    def set_tau(self, tau, delta_redshift=None):
+        """
+        Set the optical depth
+
+        This function does not do anything for splined reionization
+        :return: self
+        """
+        return self
 
 
 @fortran_class

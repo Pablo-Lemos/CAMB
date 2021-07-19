@@ -7,7 +7,7 @@ from . import reionization as reion
 from . import recombination as recomb
 from . import constants
 from .initialpower import InitialPower, SplinedInitialPower
-from .reionization import SplinedReionization
+from .reionization import ReionizationModel, SplinedReionization
 from .nonlinear import NonLinearModel
 from .dark_energy import DarkEnergyModel, DarkEnergyEqnOfState
 from .recombination import RecombinationModel
@@ -623,19 +623,22 @@ set_initial_power_function
             return sum(self.nu_mass_degeneracies[:self.nu_mass_eigenstates]) + self.num_nu_massless
 
     def set_classes(self, dark_energy_model=None, initial_power_model=None,
-                    non_linear_model=None, recombination_model=None):
+                    non_linear_model=None, recombination_model=None, reionization_history = None):
         """
         Change the classes used to implement parts of the model.
 
         :param dark_energy_model: 'fluid', 'ppf', or name of a DarkEnergyModel class
         :param initial_power_model: name of an InitialPower class
         :param non_linear_model: name of a NonLinearModel class
+        :param reionization_history: name of reionization_history class
         :param recombination_model: name of recombination_model class
         """
         if dark_energy_model:
             self.DarkEnergy = self.make_class_named(dark_energy_model, DarkEnergyModel)
         if initial_power_model:
             self.InitPower = self.make_class_named(initial_power_model, InitialPower)
+        if reionization_history:
+            self.Reion = self.make_class_named(reionization_history, ReionizationModel)
         if non_linear_model:
             self.NonLinear = self.make_class_named(non_linear_model, NonLinearModel)
         if recombination_model:

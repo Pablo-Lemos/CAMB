@@ -158,6 +158,7 @@ def set_params(cp=None, verbose=False, **params):
     do_set(cp.set_matter_power)
     do_set(cp.set_for_lmax)
     do_set(cp.InitPower.set_params)
+    do_set(cp.Reion.set_params)
     do_set(cp.NonLinearModel.set_params)
 
     if cp.InitPower.has_tensors():
@@ -204,6 +205,7 @@ def get_valid_numerical_params(transfer_only=False, **class_names):
 
     extract_params(cp.DarkEnergy.set_params)
     extract_params(cp.set_cosmology)
+    extract_params(cp.Reion.set_params)
     if not transfer_only:
         extract_params(cp.InitPower.set_params)
         extract_params(cp.NonLinearModel.set_params)
@@ -239,6 +241,7 @@ def set_params_cosmomc(p, num_massive_neutrinos=1, neutrino_hierarchy='degenerat
                        num_massive_neutrinos=num_massive_neutrinos, neutrino_hierarchy=neutrino_hierarchy)
     pars.InitPower.set_params(ns=p['ns'], r=p.get('r', 0), As=p['A'] * 1e-9, nrun=p.get('nrun', 0),
                               nrunrun=p.get('nrunrun', 0))
+    pars.Reion.set_params()
     pars.set_dark_energy(w=p.get('w', -1), wa=p.get('wa', 0), dark_energy_model=dark_energy_model)
     pars.set_for_lmax(lmax, lens_potential_accuracy=lens_potential_accuracy)
     pars.NonLinearModel.set_params(halofit_version=halofit_version)
