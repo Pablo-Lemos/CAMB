@@ -368,7 +368,7 @@
         class is (TCubicSpline)
             call Sp%Init(z,Xez)
         end select
-        if (this%zmin<1) then:
+        if (this%zmin<1) then
             write (*,*) 'Spline reionization module does not work for z<1,setting zmin=1.'
             this%zmin = 1
         else
