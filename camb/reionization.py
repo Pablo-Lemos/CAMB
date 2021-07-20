@@ -56,7 +56,8 @@ class SplinedReionization(ReionizationModel):
         """
         Set the optical depth
 
-        This function does not do anything for splined reionization
+        :param tau: optical depth
+        :param delta_redshift: delta z for reionization
         :return: self
         """
         return self

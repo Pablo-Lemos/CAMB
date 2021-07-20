@@ -57,13 +57,14 @@
     end type TTanhReionization
 
     Type, extends(TReionizationModel) :: TSplinedReionizationModel
-        real(dl) :: zmin, zmax
+        real(dl) :: zmin = 4._dl
+        real(dl) :: zmax = 12._dl
         class(TSpline1D), allocatable :: Xe
         real(dl)   :: timestep_boost =  1._dl
     contains
     procedure :: SetTable => TSplinedReionizationModel_SetTable
-    procedure :: SetLogRegular => TSplinedReionizationModel_SetLogRegular
     procedure :: x_e => TSplinedReionizationModel_SplinedXe
+    procedure :: SetLogRegular => TSplinedReionizationModel_SetLogRegular
     procedure :: get_timesteps => TSplinedReionizationModel_get_timesteps
     procedure, nopass ::  GetZreFromTau => TTanhReionization_GetZreFromTau
     procedure, nopass :: PythonClass => TSplinedReionizationModel_PythonClass
@@ -367,7 +368,12 @@
         class is (TCubicSpline)
             call Sp%Init(z,Xez)
         end select
-        this%zmin = z(1)
+        if (this%zmin<1) then:
+            write (*,*) 'Spline reionization module does not work for z<1,setting zmin=1.'
+            this%zmin = 1
+        else
+            this%zmin = z(1)
+        end if
         this%zmax = z(n)
     end if
 
@@ -379,7 +385,7 @@
     !steps may be set smaller than this anyway
     class(TSplinedReionizationModel) :: this
     integer, intent(out) :: n_steps
-    real(dl), intent(out):: z_start, z_Complete
+    real(dl), intent(out):: z_start, z_complete
 
     n_steps = nint(50 * this%timestep_boost)
     z_start = this%zmax
