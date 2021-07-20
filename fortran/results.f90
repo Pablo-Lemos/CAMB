@@ -1181,7 +1181,6 @@
     integer n
     real(dl) zstart, zend
 
-    write(*,*) 'Getting timesteps 0'
     call this%CP%Reion%get_timesteps(n, zstart, zend)
     GetReionizationOptDepth = Integrate_Romberg(this, reion_doptdepth_dz,0.d0,zstart,&
         1d-5/this%CP%Accuracy%AccuracyBoost)
